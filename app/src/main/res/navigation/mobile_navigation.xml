@@ -2,24 +2,28 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/mobile_navigation2"
-    app:startDestination="@+id/navigation_home">
-
-    <fragment
-        android:id="@+id/navigation_category"
-        android:name="com.example.recipesapp.ui.home.HomeFragment"
-        android:label="@string/title_category"
-        tools:layout="@layout/fragment_category" />
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/navigation_home">
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="com.example.recipesapp.ui.dashboard.DashboardFragment"
-        android:label="@string/title_category"
+        android:name="com.example.recipesapp.fragment.HomeFragment"
+        android:label="@string/menu_home"
         tools:layout="@layout/fragment_home" />
+
+    <!-- Tambahkan destinasi lainnya di sini -->
+
+    <fragment
+        android:id="@+id/navigation_category"
+        android:name="com.example.recipesapp.fragment.CategoriesFragment"
+        android:label="@string/menu_category"
+        tools:layout="@layout/fragment_category" />
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="com.example.recipesapp.ui.notifications.NotificationsFragment"
-        android:label="@string/title_profile"
+        android:name="com.example.recipesapp.fragment.ProfileFragment"
+        android:label="@string/menu_profile"
         tools:layout="@layout/fragment_profile" />
+
+    <!-- Anda juga dapat menambahkan nested graph atau global actions jika diperlukan -->
 </navigation>

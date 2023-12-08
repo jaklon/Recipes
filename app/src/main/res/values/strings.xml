@@ -64,4 +64,7 @@
     <string name="your_favourite_meal_here">Your Favourite Meal Here</string>
     <string name="search_your_favourite_recipe">Search your favourite Recipe</string>
     <string name="title_home" />
+    <string name="menu_home" />
+    <string name="menu_category">\n</string>
+    <string name="menu_profile" />
 </resources>
