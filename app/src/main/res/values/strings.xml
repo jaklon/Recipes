@@ -12,7 +12,6 @@
     <string name="did_you_have_an_account_click_here">Did you have an account? click here</string>
     <string name="name">name</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="title_category">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_profile">Notifications</string>
     <string name="from_our_kitchen_to_yours_nexplore_cook_enjoy">From Our Kitchen to Yours: \nExplore, Cook, Enjoy!</string>
@@ -64,7 +63,13 @@
     <string name="your_favourite_meal_here">Your Favourite Meal Here</string>
     <string name="search_your_favourite_recipe">Search your favourite Recipe</string>
     <string name="title_home" />
-    <string name="menu_home" />
     <string name="menu_category">\n</string>
     <string name="menu_profile" />
+    <string name="profile">profile</string>
+    <string name="category">category</string>
+    <string name="home">home</string>
+    <string name="Profile">Profile</string>
+    <string name="Category">Category</string>
+    <string name="Home">Home</string>
+    <string name="see_more">See More</string>
 </resources>
