@@ -37,9 +37,10 @@ public class HomeFragment extends Fragment {
 
     private void loadPopularRecipes() {
         popularRecipes = new ArrayList<>();
-        popularRecipes.add(new Recipe("1", "Popular One","recipe1", "null", "Favourite", "null", "", "", "", ""));
-        popularRecipes.add(new Recipe("2", "Popular Two","recipe1", "null", "Favourite", "null", "", "", "", ""));
-        popularRecipes.add(new Recipe("2", "Popular 3","recipe2", "null", "Favourite", "null", "", "", "", ""));
+        popularRecipes.add(new Recipe("1", "Popular One", "recipe1", "null", "Favourite", "null", "", "", "", ""));
+        popularRecipes.add(new Recipe("2", "Popular Two", "recipe1", "null", "Favourite", "null", "", "", "", ""));
+        popularRecipes.add(new Recipe("3", "Popular 3", "recipe2", "null", "Favourite", "null", "", "", "", ""));
+
         binding.rvPopulars.setAdapter(new RecipeAdapter());
         RecipeAdapter adapter = (RecipeAdapter) binding.rvPopulars.getAdapter();
         if (adapter != null) {
@@ -50,17 +51,17 @@ public class HomeFragment extends Fragment {
 
     private void loadFavouriteRecipes() {
         favouriteRecipes = new ArrayList<>();
-        favouriteRecipes.add(new Recipe("1", "Favourite One","recipe1", "null", "Favourite", "null", "", "", "", ""));
-        favouriteRecipes.add(new Recipe("2", "Favourite Two","recipe1", "null", "Favourite", "null", "", "", "", ""));
-        favouriteRecipes.add(new Recipe("2", "Favourite 3","recipe2", "null", "Favourite", "null", "", "", "", ""));
-        favouriteRecipes.add(new Recipe("2", "Favourite 4","recipe1", "null", "Favourite", "null", "", "", "", ""));
+        favouriteRecipes.add(new Recipe("1", "Favourite One", "recipe1", "null", "Favourite", "null", "", "", "", ""));
+        favouriteRecipes.add(new Recipe("2", "Favourite Two", "recipe1", "null", "Favourite", "null", "", "", "", ""));
+        favouriteRecipes.add(new Recipe("3", "Favourite 3", "recipe2", "null", "Favourite", "null", "", "", "", ""));
+        favouriteRecipes.add(new Recipe("4", "Favourite 4", "recipe1", "null", "Favourite", "null", "", "", "", ""));
+
         binding.rvFavouriteMeal.setAdapter(new RecipeAdapter());
         RecipeAdapter adapter = (RecipeAdapter) binding.rvFavouriteMeal.getAdapter();
         if (adapter != null) {
             adapter.setRecipeList(favouriteRecipes);
             adapter.notifyDataSetChanged();
         }
-
     }
 
     @Override

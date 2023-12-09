@@ -12,8 +12,7 @@ public class Recipe {
     private String time;
     private String servings;
 
-    public Recipe(String id, String name, String image, String description, String category, String instructions, String ingredients, String calories, String time, String servings) {}
-    public Recipe(String id) {
+    public Recipe(String id, String name, String image, String description, String category, String instructions, String ingredients, String calories, String time, String servings) {
         this.id = id;
         this.name = name;
         this.image = image;
@@ -25,6 +24,7 @@ public class Recipe {
         this.time = time;
         this.servings = servings;
     }
+
     public String getId() {
         return id;
     }
