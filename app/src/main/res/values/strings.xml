@@ -73,4 +73,6 @@
     <string name="Home">Home</string>
     <string name="see_more">See More</string>
     <string name="take_your_taste_buds_non_a_flavor_journey_with_us">Take your taste buds\non a flavor journey with us</string>
+    <string name="developer_email">info@recipesapp.com</string>
+    <string name="user_name">User Name</string>
 </resources>
