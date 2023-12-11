@@ -36,12 +36,11 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadPopularRecipes() {
+        binding.rvPopulars.setAdapter(new RecipeAdapter());
         popularRecipes = new ArrayList<>();
         popularRecipes.add(new Recipe("1", "Popular One", "recipe1", "null", "Favourite", "null", "", "", "", ""));
         popularRecipes.add(new Recipe("2", "Popular Two", "recipe1", "null", "Favourite", "null", "", "", "", ""));
         popularRecipes.add(new Recipe("3", "Popular 3", "recipe2", "null", "Favourite", "null", "", "", "", ""));
-
-        binding.rvPopulars.setAdapter(new RecipeAdapter());
         RecipeAdapter adapter = (RecipeAdapter) binding.rvPopulars.getAdapter();
         if (adapter != null) {
             adapter.setRecipeList(popularRecipes);

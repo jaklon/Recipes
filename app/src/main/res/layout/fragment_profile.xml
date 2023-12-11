@@ -12,8 +12,7 @@
         android:src="@drawable/bg_default_recipe"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/img_profile"
@@ -24,23 +23,21 @@
         android:scaleType="centerCrop"
         android:src="@drawable/breakfast"
         app:civ_border_color="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/img_cover"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.22" />
+        app:layout_constraintVertical_bias="1.0" />
 
     <ImageView
         android:id="@+id/img_edit_cover"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:elevation="2dp"
         android:src="@drawable/ic_edit"
         app:layout_constraintBottom_toBottomOf="@+id/img_cover"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/img_cover"
         app:tint="@color/black" />
 
     <TextView
@@ -60,7 +57,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="@string/developer_email"
         app:layout_constraintStart_toStartOf="@+id/tv_user_name"
         app:layout_constraintTop_toBottomOf="@+id/tv_user_name" />
 
@@ -80,9 +76,11 @@
         android:id="@+id/img_edit_profile"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        android:layout_marginEnd="-8dp"
         android:elevation="4dp"
         android:padding="4dp"
         android:src="@drawable/ic_edit"
+        app:flow_verticalBias="1.0"
         app:layout_constraintBottom_toBottomOf="@+id/img_profile"
         app:layout_constraintEnd_toEndOf="@+id/img_profile"
         app:layout_constraintHorizontal_bias="1.0"
