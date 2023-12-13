@@ -13,12 +13,21 @@
         android:theme="@style/Theme.RecipeApp"
         tools:targetApi="30">
         <activity
+            android:name="com.example.recipesapp.RecipeDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.example.recipesapp.AddRecipeActivity"
+            android:exported="false" />
+        <activity
             android:name="com.example.recipesapp.MainActivity"
             android:exported="true"
             android:label="@string/title_activity_main"
             android:theme="@style/Theme.RecipeApp" />
         <activity
             android:name="com.example.recipesapp.SignUpActivity"
+            android:exported="true" />
+        <activity
+            android:name="com.example.recipesapp.LoginActivity"
             android:exported="true" />
         <activity
             android:name="com.example.recipesapp.SplashActivity"
@@ -29,9 +38,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.example.recipesapp.LoginActivity"
-            android:exported="true" />
+
+        <provider
+            android:name="com.vansuita.pickimage.provider.PickImageFileProvider"
+            android:authorities="${applicationId}.com.vansuita.pickimage.provider"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            tools:replace="android:authorities">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/picker_provider_paths" />
+        </provider>
     </application>
 
 </manifest>
