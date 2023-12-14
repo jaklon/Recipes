@@ -76,4 +76,13 @@
     <string name="developer_email">info@gmail.com</string>
     <string name="user_name">User Name</string>
     <string name="share_your_nmasterpiece_with_the_world">Share your magic\nmasterpiece with the World</string>
+    <string name="satisfy_your_cravings_with_just_a_tap">satisfy your cravings with just a tap</string>
+    <string name="satisfy_your_cravings_nwith_just_a_tap_recipe_app">Satisfy your cravings\nwith just a tap - Recipe App</string>
+    <string name="share_app">share App With Friends and Family</string>
+    <string name="rate_app">Rate us On Play Store</string>
+    <string name="view_more_apps">View More Apps developed by us</string>
+    <string name="send_feedback">Share your Feedback to improve our app</string>
+    <string name="privacy_policy">Visit our Privacy Policy</string>
+    <string name="developer_name">Jaklon</string>
+    <string name="developer_id">the_jaklon</string>
 </resources>

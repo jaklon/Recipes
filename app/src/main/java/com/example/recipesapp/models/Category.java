@@ -1,16 +1,16 @@
 package com.example.recipesapp.models;
 
 public class Category {
-    private String id, name, image;
+    private String id, image, name;
 
     public Category() {
 
     }
 
-    public Category(String id, String name, String image) {
+    public Category(String id, String image, String name) {
         this.id = id;
-        this.name = name;
         this.image = image;
+        this.name = name;
     }
 
     public String getId() {
