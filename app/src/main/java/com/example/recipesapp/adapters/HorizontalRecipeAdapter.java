@@ -1,7 +1,9 @@
 package com.example.recipesapp.adapters;
 
 
+import android.content.Intent;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -11,6 +13,7 @@ import com.bumptech.glide.Glide;
 import com.example.recipes.R;
 import com.example.recipes.databinding.ItemRecipeBinding;
 import com.example.recipes.databinding.ItemRecipeHorizontalBinding;
+import com.example.recipesapp.RecipeDetailsActivity;
 import com.example.recipesapp.models.Recipe;
 
 
@@ -22,6 +25,7 @@ public class HorizontalRecipeAdapter extends RecyclerView.Adapter<HorizontalReci
 
 
     public void setRecipeList(List<Recipe> recipeList) {
+        this.recipeList.clear();
         this.recipeList = recipeList;
         notifyDataSetChanged();
     }
@@ -59,6 +63,12 @@ public class HorizontalRecipeAdapter extends RecyclerView.Adapter<HorizontalReci
                     .placeholder(R.mipmap.ic_launcher)
                     .into(binding.bgImgRecipe);
                 binding.tvRecipeName.setText(recipe.getName());
+
+                binding.getRoot().setOnClickListener(view -> {
+                    Intent intent = new Intent(binding.getRoot().getContext(), RecipeDetailsActivity.class);
+                    intent.putExtra("recipe", recipe);
+                    binding.getRoot().getContext().startActivity(intent);
+                });
             }
 
         }

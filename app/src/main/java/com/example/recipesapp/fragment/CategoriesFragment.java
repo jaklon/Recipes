@@ -26,6 +26,7 @@ import java.util.List;
 public class CategoriesFragment extends Fragment {
 
     private FragmentCategoryBinding binding;
+    private CategoryAdapter categoryAdapter;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -36,6 +37,10 @@ public class CategoriesFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        categoryAdapter = new CategoryAdapter();
+        binding.rvCategories.setAdapter(categoryAdapter);
+
         loadCategories();
     }
 
@@ -46,7 +51,7 @@ public class CategoriesFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Category> categories = new ArrayList<>();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Category category = dataSnapshot.getValue(Category.class);
                     categories.add(category);
                 }
@@ -58,11 +63,10 @@ public class CategoriesFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("Error", error.getMessage());
+                Log.e("Firebase Error", error.getMessage());
             }
         });
     }
-
 
     @Override
     public void onDestroyView() {
