@@ -24,6 +24,11 @@
         android:name="com.example.recipesapp.fragment.ProfileFragment"
         android:label="@string/menu_profile"
         tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/navigation_favorite"
+        android:name="com.example.recipesapp.fragment.FavouritesFragment"
+        android:label="fragment_favourites"
+        tools:layout="@layout/fragment_favourites" />
 
     <!-- Anda juga dapat menambahkan nested graph atau global actions jika diperlukan -->
 </navigation>

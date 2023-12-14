@@ -2,6 +2,7 @@ package com.example.recipesapp.fragment;
 
 import static com.bumptech.glide.Glide.init;
 
+import android.app.AlertDialog;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -64,9 +65,16 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        loadProfile();
-        loadUserRecipes();
-        init();
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Login Required")
+                    .setMessage("You need to login to view your profile")
+                    .show();
+        } else {
+            loadProfile();
+            loadUserRecipes();
+            init();
+        }
     }
 
     private void init() {
