@@ -1,7 +1,8 @@
 package com.example.recipesapp.fragment;
 
-import static com.bumptech.glide.Glide.init;
-
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,26 +11,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
-import android.graphics.Bitmap;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.example.recipes.R;
 import com.example.recipes.databinding.FragmentProfileBinding;
+import com.example.recipesapp.SettingActivity;
 import com.example.recipesapp.adapters.RecipeAdapter;
 import com.example.recipesapp.models.Recipe;
 import com.example.recipesapp.models.User;
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -39,11 +33,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.vansuita.pickimage.bean.PickResult;
 import com.vansuita.pickimage.bundle.PickSetup;
 import com.vansuita.pickimage.dialog.PickImageDialog;
-import com.vansuita.pickimage.listeners.IPickCancel;
-import com.vansuita.pickimage.listeners.IPickResult;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -64,9 +55,21 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        loadProfile();
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Login Required")
+                    .setMessage("You need to login to view your profile")
+                    .show();
+        } else {
+            loadProfile();
+            init();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         loadUserRecipes();
-        init();
     }
 
     private void init() {
@@ -86,11 +89,13 @@ public class ProfileFragment extends Fragment {
                     binding.imgCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
                     uploadCoverImage(r.getBitmap());
                 }).setOnPickCancel(() -> Toast.makeText(requireContext(), "Cancelled", Toast.LENGTH_SHORT).show()));
+
+        binding.btnSetting.setOnClickListener(view1 -> startActivity(new Intent(requireContext(), SettingActivity.class)));
     }
 
     private void uploadCoverImage(Bitmap bitmap) {
         FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference storageRef = storage.getReference().child("images/" + FirebaseAuth.getInstance().getUid()+"cover.jpg");
+        StorageReference storageRef = storage.getReference().child("images/" + FirebaseAuth.getInstance().getUid() + "cover.jpg");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] data = baos.toByteArray();
@@ -103,22 +108,20 @@ public class ProfileFragment extends Fragment {
         }).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Uri downloadUri = task.getResult();
-                //
-                //
-                Toast.makeText(requireContext(), "Image Upload Successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Image Uploaded Successfully", Toast.LENGTH_SHORT).show();
                 user.setCover(Objects.requireNonNull(downloadUri).toString());
                 DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
                 reference.child("Users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).setValue(user);
+
             } else {
-                //handle  failure...
-                Log.e("ProfileFragment", "onComplete: " + Objects.requireNonNull(task.getException()));
+                Log.e("ProfileFragment", "onComplete: " + Objects.requireNonNull(task.getException()).getMessage());
             }
         });
     }
 
     private void uploadImage(Bitmap bitmap) {
         FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference storageRef = storage.getReference().child("images/" + FirebaseAuth.getInstance().getUid()+"image.jpg");
+        StorageReference storageRef = storage.getReference().child("images/" + FirebaseAuth.getInstance().getUid() + "image.jpg");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] data = baos.toByteArray();
@@ -131,15 +134,13 @@ public class ProfileFragment extends Fragment {
         }).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Uri downloadUri = task.getResult();
-                //
-                //
-                Toast.makeText(requireContext(), "Image Upload Successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Image Uploaded Successfully", Toast.LENGTH_SHORT).show();
                 user.setImage(Objects.requireNonNull(downloadUri).toString());
                 DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
                 reference.child("Users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).setValue(user);
+
             } else {
-                //handle  failure...
-                Log.e("ProfileFragment", "onComplete: " + Objects.requireNonNull(task.getException()));
+                Log.e("ProfileFragment", "onComplete: " + Objects.requireNonNull(task.getException()).getMessage());
             }
         });
     }
@@ -148,7 +149,7 @@ public class ProfileFragment extends Fragment {
         binding.rvProfile.setLayoutManager(new GridLayoutManager(getContext(), 2));
         binding.rvProfile.setAdapter(new RecipeAdapter());
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-        reference.child("Recipes").orderByChild("authorId").equalTo(FirebaseAuth.getInstance().getUid()).addValueEventListener(new ValueEventListener() {
+        reference.child("Recipes").orderByChild("authorId").equalTo(FirebaseAuth.getInstance().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Recipe> recipes = new ArrayList<>();
@@ -175,7 +176,6 @@ public class ProfileFragment extends Fragment {
                 if (user != null) {
                     binding.tvUserName.setText(user.getName());
                     binding.tvEmail.setText(user.getEmail());
-                    StorageReference reference = FirebaseStorage.getInstance().getReference().child("images/" + FirebaseAuth.getInstance().getUid()+"image.jpg");
                     Glide
                             .with(requireContext())
                             .load(user.getImage())
@@ -200,10 +200,12 @@ public class ProfileFragment extends Fragment {
             }
         });
         User user = new User();
-        user.setName("Jaklon");
-        user.setEmail("jaklon@gmail.com");
+        user.setName("Cullinary");
+        user.setEmail("cullinary@gmail.com");
         binding.tvUserName.setText(user.getName());
         binding.tvEmail.setText(user.getEmail());
+
+
     }
 
     @Override

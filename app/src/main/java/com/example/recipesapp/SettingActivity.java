@@ -1,12 +1,11 @@
 package com.example.recipesapp;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.recipes.R;
 import com.example.recipes.databinding.ActivitySettingBinding;
@@ -57,7 +56,7 @@ public class SettingActivity extends AppCompatActivity {
 
     private void privacyPolicy() {
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse("https://ww.google.com"));
+        intent.setData(Uri.parse("https://www.google.com"));
         startActivity(intent);
     }
 
@@ -70,8 +69,8 @@ public class SettingActivity extends AppCompatActivity {
     private void shareApp() {
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_SUBJECT, "Wallcraft");
-        intent.putExtra(Intent.EXTRA_TEXT, "Get " + getString(R.string.app_name) + " to get the best wallpapers for your phone: ");
-        startActivity(Intent.createChooser(intent, "Share App"));
+        intent.putExtra(Intent.EXTRA_SUBJECT, "CullinaryConnect");
+        intent.putExtra(Intent.EXTRA_TEXT, "Get " + getString(R.string.app_name) + " to get the best foods for you: ");
+        startActivity(Intent.createChooser(intent, "ShareApp"));
     }
 }

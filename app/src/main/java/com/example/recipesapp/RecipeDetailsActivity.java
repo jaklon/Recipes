@@ -1,17 +1,22 @@
 package com.example.recipesapp;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.recipes.R;
 import com.example.recipes.databinding.ActivityRecipeDetailsBinding;
+import com.example.recipesapp.models.FavouriteRecipe;
 import com.example.recipesapp.models.Recipe;
+import com.example.recipesapp.room.RecipeRepository;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -31,6 +36,7 @@ public class RecipeDetailsActivity extends AppCompatActivity {
 
     private void init() {
         Recipe recipe = (Recipe) getIntent().getSerializableExtra("recipe");
+        assert recipe != null;
         binding.tvName.setText(recipe.getName());
         binding.tcCategory.setText(recipe.getCategory());
         binding.tvDescription.setText(recipe.getDescription());
@@ -44,8 +50,10 @@ public class RecipeDetailsActivity extends AppCompatActivity {
 
         if (recipe.getAuthorId().equalsIgnoreCase(FirebaseAuth.getInstance().getUid())) {
             binding.imgEdit.setVisibility(View.VISIBLE);
+            binding.btnDelete.setVisibility(View.VISIBLE);
         } else {
             binding.imgEdit.setVisibility(View.GONE);
+            binding.btnDelete.setVisibility(View.GONE);
         }
 
         binding.imgEdit.setOnClickListener(view -> {
@@ -54,16 +62,65 @@ public class RecipeDetailsActivity extends AppCompatActivity {
             intent.putExtra("isEdit", true);
             binding.getRoot().getContext().startActivity(intent);
         });
-        
-        updateDataWithFirebase(recipe.getId());
+        checkFavorite(recipe);
+        binding.imgFvrt.setOnClickListener(view -> favouriteRecipe(recipe));
+
+        binding.btnDelete.setOnClickListener(view -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete Recipe")
+                    .setMessage("Are you sure you want to delete this recipe?")
+                    .setPositiveButton("Yes", (dialogInterface, i) -> {
+                        ProgressDialog dialog = new ProgressDialog(this);
+                        dialog.setMessage("Deleting...");
+                        dialog.setCancelable(false);
+                        dialog.show();
+                        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Recipes");
+                        reference.child(recipe.getId()).removeValue().addOnCompleteListener(task -> {
+                            dialog.dismiss();
+                            if (task.isSuccessful()) {
+                                Toast.makeText(this, "Recipe Deleted Successfully", Toast.LENGTH_SHORT).show();
+                                finish();
+                            } else {
+                                Toast.makeText(this, "Failed to delete recipe", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    })
+                    .setNegativeButton("No", (dialogInterface, i) -> dialogInterface.dismiss())
+                    .show();
+        });
+
+        updateDataWithFireBase(recipe.getId());
     }
 
-    private void updateDataWithFirebase(String id) {
+    private void checkFavorite(Recipe recipe) {
+        RecipeRepository repository = new RecipeRepository(getApplication());
+        boolean isFavourite = repository.isFavourite(recipe.getId());
+        if (isFavourite) {
+            binding.imgFvrt.setColorFilter(getResources().getColor(R.color.accent));
+        } else {
+            binding.imgFvrt.setColorFilter(getResources().getColor(R.color.black));
+        }
+    }
+
+    private void favouriteRecipe(Recipe recipe) {
+        RecipeRepository repository = new RecipeRepository(getApplication());
+        boolean isFavourite = repository.isFavourite(recipe.getId());
+        if (isFavourite) {
+            repository.delete(new FavouriteRecipe(recipe.getId()));
+            binding.imgFvrt.setColorFilter(getResources().getColor(R.color.black));
+        } else {
+            repository.insert(new FavouriteRecipe(recipe.getId()));
+            binding.imgFvrt.setColorFilter(getResources().getColor(R.color.accent));
+        }
+    }
+
+    private void updateDataWithFireBase(String id) {
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Recipes");
-        reference.child(id).addValueEventListener(new ValueEventListener() {
+        reference.child(id).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Recipe recipe = (Recipe) getIntent().getSerializableExtra("recipe");
+                Recipe recipe = snapshot.getValue(Recipe.class);
+                assert recipe != null;
                 binding.tvName.setText(recipe.getName());
                 binding.tcCategory.setText(recipe.getCategory());
                 binding.tvDescription.setText(recipe.getDescription());
