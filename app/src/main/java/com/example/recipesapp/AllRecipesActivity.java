@@ -1,14 +1,12 @@
 package com.example.recipesapp;
 
+import android.os.Bundle;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import android.os.Bundle;
-import android.util.Log;
-
-import com.example.recipes.R;
-import com.example.recipes.databinding.ActivityAddRecipeBinding;
 import com.example.recipes.databinding.ActivityAllRecipesBinding;
 import com.example.recipesapp.adapters.RecipeAdapter;
 import com.example.recipesapp.models.Recipe;
@@ -19,40 +17,61 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Date: 2023-04-28
+ * Hello Guys, Welcome to HashMac
+ * Let's load and filter recipes by category
+ * Our filter by Category added, Let's test it
+ * Filter by Category is working fine
+ * Now we will add search feature
+ * But before that, we will fix Home and Edit Recipe Activity
+ * Everything is working fine
+ * Now we will add search feature
+ * Let's get started and search on StackOverflow
+ * Let's test our search feature
+ * Works but not as expected, Let's fix it
+ * Works pretty well, Let's add some more features
+ * See All Recipes implement now
+ * let's test it
+ *
+ * Did you notice whenever we open app, Keyboad is open by default
+ * We need to fix it
+ */
+
 public class AllRecipesActivity extends AppCompatActivity {
-
-    private ActivityAllRecipesBinding binding;
-    private DatabaseReference reference;
-    private RecipeAdapter adapter;
-
+    ActivityAllRecipesBinding binding;
+    DatabaseReference reference;
+    String type;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityAllRecipesBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         reference = FirebaseDatabase.getInstance().getReference("Recipes");
-        binding.rvRecipes.setLayoutManager(new GridLayoutManager(this, 2));
+        binding.rvRecipes.setLayoutManager(new GridLayoutManager(this,2));
         binding.rvRecipes.setAdapter(new RecipeAdapter());
-        String type = getIntent().getStringExtra("type");
-        if (type.equalsIgnoreCase("category")) {
-            filterByCategory();
-        } else if (type.equalsIgnoreCase("recipe")) {
-            loadByRecipes();
-        } else {
-        loadAllRecipes();
-        }
-
+        type = getIntent().getStringExtra("type");
     }
 
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (type.equalsIgnoreCase("category")) {
+            filterByCategory();
+        } else if (type.equalsIgnoreCase("search")) {
+            loadByRecipes();
+        } else {
+            loadAllRecipes();
+        }
+    }
 
     private void loadByRecipes() {
+        // Search Recipes by Name
         String query = getIntent().getStringExtra("query");
-        reference.addValueEventListener(new ValueEventListener() {
+        reference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Recipe> recipes = new ArrayList<>();
@@ -75,7 +94,8 @@ public class AllRecipesActivity extends AppCompatActivity {
     }
 
     private void loadAllRecipes() {
-        reference.addValueEventListener(new ValueEventListener() {
+        // Load All Recipes
+        reference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Recipe> recipes = new ArrayList<>();
@@ -98,9 +118,9 @@ public class AllRecipesActivity extends AppCompatActivity {
     }
 
     private void filterByCategory() {
+        // Filter Recipes by Category
         String category = getIntent().getStringExtra("category");
-        DatabaseReference recipesRef = FirebaseDatabase.getInstance().getReference("Recipes");
-        recipesRef.orderByChild("category").equalTo(category).addValueEventListener(new ValueEventListener() {
+        reference.orderByChild("category").equalTo(category).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Recipe> recipes = new ArrayList<>();
@@ -119,7 +139,6 @@ public class AllRecipesActivity extends AppCompatActivity {
                 Log.e("Error", error.getMessage());
             }
         });
+
     }
-
 }
-

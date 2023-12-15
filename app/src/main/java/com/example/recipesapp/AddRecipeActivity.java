@@ -2,9 +2,6 @@ package com.example.recipesapp;
 
 import static java.lang.System.currentTimeMillis;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -14,6 +11,9 @@ import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.recipes.R;
@@ -38,27 +38,27 @@ import java.util.List;
 import java.util.Objects;
 
 public class AddRecipeActivity extends AppCompatActivity {
-
     ActivityAddRecipeBinding binding;
     private boolean isImageSelected = false;
     private ProgressDialog dialog;
     boolean isEdit;
+    String recipeId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityAddRecipeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
         loadCategories();
-        binding.btnAddRecipe.setOnClickListener(v -> {
-            //get data from user and validate it
+        binding.btnAddRecipe.setOnClickListener(view -> {
             getData();
         });
         binding.imgRecipe.setOnClickListener(view -> {
             pickImage();
         });
 
-        //for edit purpose
+        // For Edit Purpose
         isEdit = getIntent().getBooleanExtra("isEdit", false);
         if (isEdit) {
             editRecipe();
@@ -67,6 +67,7 @@ public class AddRecipeActivity extends AppCompatActivity {
 
     private void editRecipe() {
         Recipe recipe = (Recipe) getIntent().getSerializableExtra("recipe");
+        recipeId = recipe.getId();
         isImageSelected = true;
         binding.etRecipeName.setText(recipe.getName());
         binding.etDescription.setText(recipe.getDescription());
@@ -79,6 +80,7 @@ public class AddRecipeActivity extends AppCompatActivity {
                 .centerCrop()
                 .placeholder(R.drawable.image_placeholder)
                 .into(binding.imgRecipe);
+
         binding.btnAddRecipe.setText("Update Recipe");
     }
 
@@ -115,16 +117,16 @@ public class AddRecipeActivity extends AppCompatActivity {
     }
 
     private void getData() {
-        //fetch all the data from the user in variables
+        // Fetch All the data from the user in variables.
         String recipeName = Objects.requireNonNull(binding.etRecipeName.getText()).toString();
         String recipeDescription = Objects.requireNonNull(binding.etDescription.getText()).toString();
         String cookingTime = Objects.requireNonNull(binding.etCookingTime.getText()).toString();
         String recipeCategory = binding.etCategory.getText().toString();
         String calories = Objects.requireNonNull(binding.etCalories.getText()).toString();
 
-        //validate the data
+
         if (recipeName.isEmpty()) {
-            binding.etRecipeName.setError("Please enter Recpe Name");
+            binding.etRecipeName.setError("Please enter Recipe Name");
         } else if (recipeDescription.isEmpty()) {
             binding.etDescription.setError("Please enter Recipe Description");
         } else if (cookingTime.isEmpty()) {
@@ -136,19 +138,20 @@ public class AddRecipeActivity extends AppCompatActivity {
         } else if (!isImageSelected) {
             Toast.makeText(this, "Please select an image", Toast.LENGTH_SHORT).show();
         } else {
+
             dialog = new ProgressDialog(this);
             dialog.setMessage("Uploading Recipe...");
             dialog.setCancelable(false);
             dialog.show();
             Recipe recipe = new Recipe(recipeName, recipeDescription, cookingTime, recipeCategory, calories, "", FirebaseAuth.getInstance().getUid());
-
             uploadImage(recipe);
         }
+
+
     }
 
     private String uploadImage(Recipe recipe) {
         final String[] url = {""};
-        //upload image to firebase storage
         binding.imgRecipe.setDrawingCacheEnabled(true);
         Bitmap bitmap = ((BitmapDrawable) binding.imgRecipe.getDrawable()).getBitmap();
         binding.imgRecipe.setDrawingCacheEnabled(false);
@@ -167,16 +170,13 @@ public class AddRecipeActivity extends AppCompatActivity {
         }).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Uri downloadUri = task.getResult();
-                //
-                //
                 url[0] = downloadUri.toString();
-                Toast.makeText(AddRecipeActivity.this, "Image Upload Successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AddRecipeActivity.this, "Image Uploaded Successfully", Toast.LENGTH_SHORT).show();
                 saveDataInDataBase(recipe, url[0]);
             } else {
-                //handle  failure...
                 Toast.makeText(AddRecipeActivity.this, "Error in uploading image", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
-                Log.e("ProfileFragment", "onComplete: " + Objects.requireNonNull(task.getException()));
+                Log.e("ProfileFragment", "onComplete: " + Objects.requireNonNull(task.getException()).getMessage());
             }
         });
         return url[0];
@@ -184,16 +184,16 @@ public class AddRecipeActivity extends AppCompatActivity {
 
     private void saveDataInDataBase(Recipe recipe, String url) {
         recipe.setImage(url);
-
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Recipes");
         if (isEdit) {
+            recipe.setId(recipeId);
             reference.child(recipe.getId()).setValue(recipe).addOnCompleteListener(task -> {
                 dialog.dismiss();
                 if (task.isSuccessful()) {
-                    Toast.makeText(AddRecipeActivity.this, "Recipe Updated Succesfully", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AddRecipeActivity.this, "Recipe Updated Successfully", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
-                    Toast.makeText(AddRecipeActivity.this, "Error in Updating recipe", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AddRecipeActivity.this, "Error in updating recipe", Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
@@ -203,10 +203,7 @@ public class AddRecipeActivity extends AppCompatActivity {
                 reference.child(id).setValue(recipe).addOnCompleteListener(task -> {
                     dialog.dismiss();
                     if (task.isSuccessful()) {
-                        if (isEdit)
-                            Toast.makeText(AddRecipeActivity.this, "Recipe Updated Successfully", Toast.LENGTH_SHORT).show();
-                        else
-                            Toast.makeText(AddRecipeActivity.this, "Recipe Added Successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AddRecipeActivity.this, "Recipe Added Successfully", Toast.LENGTH_SHORT).show();
                         finish();
                     } else {
                         Toast.makeText(AddRecipeActivity.this, "Error in adding recipe", Toast.LENGTH_SHORT).show();
