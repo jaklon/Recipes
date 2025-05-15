@@ -13,7 +13,6 @@ import androidx.fragment.app.Fragment;
 import com.example.recipes.databinding.FragmentCategoryBinding;
 import com.example.recipesapp.adapters.CategoryAdapter;
 import com.example.recipesapp.models.Category;
-import com.google.firebase.Firebase;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,6 +26,9 @@ public class CategoriesFragment extends Fragment {
 
     private FragmentCategoryBinding binding;
     private CategoryAdapter categoryAdapter;
+
+    private DatabaseReference reference;
+    private ValueEventListener categoriesListener;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -45,32 +47,42 @@ public class CategoriesFragment extends Fragment {
     }
 
     private void loadCategories() {
-        binding.rvCategories.setAdapter(new CategoryAdapter());
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Categories");
-        reference.addValueEventListener(new ValueEventListener() {
+        reference = FirebaseDatabase.getInstance().getReference("Categories");
+
+        categoriesListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // Cek apakah binding masih valid (view belum dihancurkan)
+                if (binding == null) return;
+
                 List<Category> categories = new ArrayList<>();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Category category = dataSnapshot.getValue(Category.class);
-                    categories.add(category);
+                    if (category != null) {
+                        categories.add(category);
+                    }
                 }
-                CategoryAdapter adapter = (CategoryAdapter) binding.rvCategories.getAdapter();
-                if (adapter != null) {
-                    adapter.setCategoryList(categories);
-                }
+                categoryAdapter.setCategoryList(categories);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Log.e("Firebase Error", error.getMessage());
             }
-        });
+        };
+
+        reference.addValueEventListener(categoriesListener);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+
+        // Hapus listener Firebase supaya tidak callback setelah view dihancurkan
+        if (reference != null && categoriesListener != null) {
+            reference.removeEventListener(categoriesListener);
+        }
+
         binding = null;
     }
 }

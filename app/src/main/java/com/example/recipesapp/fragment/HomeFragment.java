@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
@@ -38,14 +37,10 @@ public class HomeFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        loadRecipes();
-    }
-
-    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Inisialisasi listener pencarian
         binding.etSearch.setOnEditorActionListener((textView, i, keyEvent) -> {
             if (i == EditorInfo.IME_ACTION_SEARCH) {
                 performSearch();
@@ -54,17 +49,22 @@ public class HomeFragment extends Fragment {
             return false;
         });
 
-        binding.tvSeeAllFavourite.setOnClickListener(view1 -> {
+        // Lihat semua resep favorit
+        binding.tvSeeAllFavourite.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), AllRecipesActivity.class);
             intent.putExtra("type", "favourite");
             startActivity(intent);
         });
 
-        binding.tvSeeAllPopulars.setOnClickListener(view1 -> {
+        // Lihat semua resep populer
+        binding.tvSeeAllPopulars.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), AllRecipesActivity.class);
             intent.putExtra("type", "popular");
             startActivity(intent);
         });
+
+        // Load data resep
+        loadRecipes();
     }
 
     private void performSearch() {
@@ -73,39 +73,46 @@ public class HomeFragment extends Fragment {
         intent.putExtra("type", "search");
         intent.putExtra("query", query);
         startActivity(intent);
-
     }
 
     private void loadRecipes() {
-        // We will load recipes from our database
+        if (binding == null) return;
+
+        // Set adapter kosong dulu agar tidak null saat diisi nanti
         binding.rvPopulars.setAdapter(new HorizontalRecipeAdapter());
         binding.rvFavouriteMeal.setAdapter(new HorizontalRecipeAdapter());
+
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Recipes");
         reference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (binding == null || !isAdded()) return;
+
                 List<Recipe> recipes = new ArrayList<>();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Recipe recipe = dataSnapshot.getValue(Recipe.class);
-                    recipes.add(recipe);
+                    if (recipe != null) {
+                        recipes.add(recipe);
+                    }
                 }
-                loadPopularRecipes(recipes);
-                loadFavouriteRecipes(recipes);
+
+                if (!recipes.isEmpty()) {
+                    loadPopularRecipes(recipes);
+                    loadFavouriteRecipes(recipes);
+                }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("Error", error.getMessage());
+                Log.e("FirebaseError", "loadRecipes: " + error.getMessage());
             }
         });
     }
 
     private void loadPopularRecipes(List<Recipe> recipes) {
-        List<Recipe> popularRecipes = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            int random = (int) (Math.random() * recipes.size());
-            popularRecipes.add(recipes.get(random));
-        }
+        if (binding == null) return;
+
+        List<Recipe> popularRecipes = getRandomRecipes(recipes, 5);
         HorizontalRecipeAdapter adapter = (HorizontalRecipeAdapter) binding.rvPopulars.getAdapter();
         if (adapter != null) {
             adapter.setRecipeList(popularRecipes);
@@ -113,16 +120,26 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadFavouriteRecipes(List<Recipe> recipes) {
-        List<Recipe> favouriteRecipes = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            int random = (int) (Math.random() * recipes.size());
-            favouriteRecipes.add(recipes.get(random));
-        }
+        if (binding == null) return;
+
+        List<Recipe> favouriteRecipes = getRandomRecipes(recipes, 5);
         HorizontalRecipeAdapter adapter = (HorizontalRecipeAdapter) binding.rvFavouriteMeal.getAdapter();
         if (adapter != null) {
             adapter.setRecipeList(favouriteRecipes);
         }
+    }
 
+    private List<Recipe> getRandomRecipes(List<Recipe> source, int count) {
+        List<Recipe> selected = new ArrayList<>();
+        int maxCount = Math.min(count, source.size());
+        List<Recipe> copy = new ArrayList<>(source);
+
+        for (int i = 0; i < maxCount; i++) {
+            int randomIndex = (int) (Math.random() * copy.size());
+            selected.add(copy.remove(randomIndex)); // Hindari duplikat
+        }
+
+        return selected;
     }
 
     @Override
