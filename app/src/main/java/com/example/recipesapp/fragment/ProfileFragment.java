@@ -1,6 +1,7 @@
 package com.example.recipesapp.fragment;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -56,10 +57,13 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            new AlertDialog.Builder(getContext())
-                    .setTitle("Login Required")
-                    .setMessage("You need to login to view your profile")
-                    .show();
+            if (isSafe()) {
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Login Required")
+                        .setMessage("You need to login to view your profile")
+                        .setPositiveButton("OK", null)
+                        .show();
+            }
         } else {
             loadProfile();
             init();
@@ -74,31 +78,53 @@ public class ProfileFragment extends Fragment {
 
     private void init() {
         binding.imgEditProfile.setOnClickListener(v -> {
-            PickImageDialog.build(new PickSetup()).show(requireActivity()).setOnPickResult(r -> {
-                Log.e("ProfileFragment", "onPickResult: " + r.getUri());
-                binding.imgProfile.setImageBitmap(r.getBitmap());
-                binding.imgCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                uploadImage(r.getBitmap());
-            }).setOnPickCancel(() -> Toast.makeText(requireContext(), "Cancelled", Toast.LENGTH_SHORT).show());
+            PickImageDialog.build(new PickSetup())
+                    .setOnPickResult(r -> {
+                        if (!isSafe()) return;
+                        Log.e("ProfileFragment", "onPickResult: " + r.getUri());
+                        binding.imgProfile.setImageBitmap(r.getBitmap());
+                        uploadImage(r.getBitmap());
+                    })
+                    .setOnPickCancel(() -> {
+                        if (getContextSafe() != null) {
+                            Toast.makeText(getContextSafe(), "Cancelled", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .show(requireActivity());
         });
 
-        binding.imgEditCover.setOnClickListener(view ->
-                PickImageDialog.build(new PickSetup()).show(requireActivity()).setOnPickResult(r -> {
-                    Log.e("ProfileFragment", "onPickResult: " + r.getUri());
-                    binding.imgCover.setImageBitmap(r.getBitmap());
-                    binding.imgCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                    uploadCoverImage(r.getBitmap());
-                }).setOnPickCancel(() -> Toast.makeText(requireContext(), "Cancelled", Toast.LENGTH_SHORT).show()));
+        binding.imgEditCover.setOnClickListener(view -> {
+            PickImageDialog.build(new PickSetup())
+                    .setOnPickResult(r -> {
+                        if (!isSafe()) return;
+                        Log.e("ProfileFragment", "onPickResult: " + r.getUri());
+                        binding.imgCover.setImageBitmap(r.getBitmap());
+                        binding.imgCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        uploadCoverImage(r.getBitmap());
+                    })
+                    .setOnPickCancel(() -> {
+                        if (getContextSafe() != null) {
+                            Toast.makeText(getContextSafe(), "Cancelled", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .show(requireActivity());
+        });
 
-        binding.btnSetting.setOnClickListener(view1 -> startActivity(new Intent(requireContext(), SettingActivity.class)));
+        binding.btnSetting.setOnClickListener(view -> {
+            if (isSafe()) {
+                startActivity(new Intent(requireContext(), SettingActivity.class));
+            }
+        });
     }
 
     private void uploadCoverImage(Bitmap bitmap) {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference().child("images/" + FirebaseAuth.getInstance().getUid() + "cover.jpg");
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] data = baos.toByteArray();
+
         UploadTask uploadTask = storageRef.putBytes(data);
         uploadTask.continueWithTask(task -> {
             if (!task.isSuccessful()) {
@@ -106,15 +132,20 @@ public class ProfileFragment extends Fragment {
             }
             return storageRef.getDownloadUrl();
         }).addOnCompleteListener(task -> {
+            if (!isSafe()) return;
+
             if (task.isSuccessful()) {
                 Uri downloadUri = task.getResult();
-                Toast.makeText(requireContext(), "Image Uploaded Successfully", Toast.LENGTH_SHORT).show();
-                user.setCover(Objects.requireNonNull(downloadUri).toString());
-                DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-                reference.child("Users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).setValue(user);
-
+                if (user != null) {
+                    user.setCover(Objects.requireNonNull(downloadUri).toString());
+                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+                    reference.child("Users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).setValue(user);
+                    Toast.makeText(getContextSafe(), "Cover Image Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.e("ProfileFragment", "uploadCoverImage: user is null");
+                }
             } else {
-                Log.e("ProfileFragment", "onComplete: " + Objects.requireNonNull(task.getException()).getMessage());
+                Log.e("ProfileFragment", "uploadCoverImage failed: " + Objects.requireNonNull(task.getException()).getMessage());
             }
         });
     }
@@ -122,9 +153,11 @@ public class ProfileFragment extends Fragment {
     private void uploadImage(Bitmap bitmap) {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference().child("images/" + FirebaseAuth.getInstance().getUid() + "image.jpg");
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] data = baos.toByteArray();
+
         UploadTask uploadTask = storageRef.putBytes(data);
         uploadTask.continueWithTask(task -> {
             if (!task.isSuccessful()) {
@@ -132,80 +165,90 @@ public class ProfileFragment extends Fragment {
             }
             return storageRef.getDownloadUrl();
         }).addOnCompleteListener(task -> {
+            if (!isSafe()) return;
+
             if (task.isSuccessful()) {
                 Uri downloadUri = task.getResult();
-                Toast.makeText(requireContext(), "Image Uploaded Successfully", Toast.LENGTH_SHORT).show();
-                user.setImage(Objects.requireNonNull(downloadUri).toString());
-                DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-                reference.child("Users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).setValue(user);
-
+                if (user != null) {
+                    user.setImage(Objects.requireNonNull(downloadUri).toString());
+                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+                    reference.child("Users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).setValue(user);
+                    Toast.makeText(getContextSafe(), "Profile Image Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.e("ProfileFragment", "uploadImage: user is null");
+                }
             } else {
-                Log.e("ProfileFragment", "onComplete: " + Objects.requireNonNull(task.getException()).getMessage());
+                Log.e("ProfileFragment", "uploadImage failed: " + Objects.requireNonNull(task.getException()).getMessage());
             }
         });
     }
 
     private void loadUserRecipes() {
         binding.rvProfile.setLayoutManager(new GridLayoutManager(getContext(), 2));
-        binding.rvProfile.setAdapter(new RecipeAdapter());
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-        reference.child("Recipes").orderByChild("authorId").equalTo(FirebaseAuth.getInstance().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<Recipe> recipes = new ArrayList<>();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Recipe recipe = dataSnapshot.getValue(Recipe.class);
-                    recipes.add(recipe);
-                }
-                ((RecipeAdapter) Objects.requireNonNull(binding.rvProfile.getAdapter())).setRecipeList(recipes);
-            }
+        RecipeAdapter adapter = new RecipeAdapter();
+        binding.rvProfile.setAdapter(adapter);
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("ProfileFragment", "onCancelled: " + error.getMessage());
-            }
-        });
+        FirebaseDatabase.getInstance().getReference("Recipes")
+                .orderByChild("authorId")
+                .equalTo(FirebaseAuth.getInstance().getUid())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        List<Recipe> recipes = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            Recipe recipe = dataSnapshot.getValue(Recipe.class);
+                            if (recipe != null) recipes.add(recipe);
+                        }
+                        adapter.setRecipeList(recipes);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("ProfileFragment", "Load recipes cancelled: " + error.getMessage());
+                    }
+                });
     }
 
     private void loadProfile() {
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-        reference.child("Users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                user = snapshot.getValue(User.class);
-                if (user != null) {
-                    binding.tvUserName.setText(user.getName());
-                    binding.tvEmail.setText(user.getEmail());
-                    Glide
-                            .with(requireContext())
-                            .load(user.getImage())
-                            .centerCrop()
-                            .placeholder(R.mipmap.ic_launcher)
-                            .into(binding.imgProfile);
+        FirebaseDatabase.getInstance().getReference("Users")
+                .child(FirebaseAuth.getInstance().getUid())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        user = snapshot.getValue(User.class);
+                        if (user != null && isSafe()) {
+                            binding.tvUserName.setText(user.getName());
+                            binding.tvEmail.setText(user.getEmail());
 
-                    Glide
-                            .with(requireContext())
-                            .load(user.getCover())
-                            .centerCrop()
-                            .placeholder(R.drawable.bg_default_recipe)
-                            .into(binding.imgCover);
-                } else {
-                    Log.e("ProfileFragment", "onDataChange: User is null");
-                }
-            }
+                            Glide.with(getContextSafe())
+                                    .load(user.getImage())
+                                    .centerCrop()
+                                    .placeholder(R.mipmap.ic_launcher)
+                                    .into(binding.imgProfile);
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("ProfileFragment", "onCancelled: " + error.getMessage());
-            }
-        });
-        User user = new User();
-        user.setName("Cullinary");
-        user.setEmail("cullinary@gmail.com");
-        binding.tvUserName.setText(user.getName());
-        binding.tvEmail.setText(user.getEmail());
+                            Glide.with(getContextSafe())
+                                    .load(user.getCover())
+                                    .centerCrop()
+                                    .placeholder(R.drawable.bg_default_recipe)
+                                    .into(binding.imgCover);
+                        } else {
+                            Log.e("ProfileFragment", "User is null or fragment not attached");
+                        }
+                    }
 
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("ProfileFragment", "Load profile cancelled: " + error.getMessage());
+                    }
+                });
+    }
 
+    private Context getContextSafe() {
+        return isAdded() ? requireContext() : null;
+    }
+
+    private boolean isSafe() {
+        return isAdded() && getContextSafe() != null && binding != null;
     }
 
     @Override
