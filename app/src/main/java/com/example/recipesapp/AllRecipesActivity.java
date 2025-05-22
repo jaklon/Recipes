@@ -77,8 +77,11 @@ public class AllRecipesActivity extends AppCompatActivity {
                 List<Recipe> recipes = new ArrayList<>();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Recipe recipe = dataSnapshot.getValue(Recipe.class);
-                    if (recipe.getName().toLowerCase().contains(query.toLowerCase()))
+                    if (recipe != null && "approved".equalsIgnoreCase(recipe.getStatus()) &&
+                            recipe.getName().toLowerCase().contains(query.toLowerCase())) {
                         recipes.add(recipe);
+                    }
+
                 }
                 RecipeAdapter adapter = (RecipeAdapter) binding.rvRecipes.getAdapter();
                 if (adapter != null) {
@@ -101,8 +104,11 @@ public class AllRecipesActivity extends AppCompatActivity {
                 List<Recipe> recipes = new ArrayList<>();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Recipe recipe = dataSnapshot.getValue(Recipe.class);
-                    recipes.add(recipe);
+                    if (recipe != null && "approved".equalsIgnoreCase(recipe.getStatus())) {
+                        recipes.add(recipe);
+                    }
                 }
+
                 Collections.shuffle(recipes);
                 RecipeAdapter adapter = (RecipeAdapter) binding.rvRecipes.getAdapter();
                 if (adapter != null) {
@@ -126,8 +132,11 @@ public class AllRecipesActivity extends AppCompatActivity {
                 List<Recipe> recipes = new ArrayList<>();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Recipe recipe = dataSnapshot.getValue(Recipe.class);
-                    recipes.add(recipe);
+                    if (recipe != null && "approved".equalsIgnoreCase(recipe.getStatus())) {
+                        recipes.add(recipe);
+                    }
                 }
+
                 RecipeAdapter adapter = (RecipeAdapter) binding.rvRecipes.getAdapter();
                 if (adapter != null) {
                     adapter.setRecipeList(recipes);

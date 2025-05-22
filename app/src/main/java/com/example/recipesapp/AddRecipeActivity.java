@@ -184,32 +184,46 @@ public class AddRecipeActivity extends AppCompatActivity {
 
     private void saveDataInDataBase(Recipe recipe, String url) {
         recipe.setImage(url);
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Recipes");
+        recipe.setStatus("pending"); // status default
+
+        // Simpan ke node PendingRecipes, bukan Recipes
+        DatabaseReference reference = FirebaseDatabase.getInstance()
+                .getReference()
+                .child("PendingRecipes");
+
         if (isEdit) {
+            // Untuk edit, mungkin kamu ingin update langsung di Recipes
             recipe.setId(recipeId);
-            reference.child(recipe.getId()).setValue(recipe).addOnCompleteListener(task -> {
-                dialog.dismiss();
-                if (task.isSuccessful()) {
-                    Toast.makeText(AddRecipeActivity.this, "Recipe Updated Successfully", Toast.LENGTH_SHORT).show();
-                    finish();
-                } else {
-                    Toast.makeText(AddRecipeActivity.this, "Error in updating recipe", Toast.LENGTH_SHORT).show();
-                }
-            });
+            FirebaseDatabase.getInstance().getReference("Recipes")
+                    .child(recipeId)
+                    .setValue(recipe)
+                    .addOnCompleteListener(task -> {
+                        dialog.dismiss();
+                        if (task.isSuccessful()) {
+                            Toast.makeText(this, "Recipe Updated Successfully", Toast.LENGTH_SHORT).show();
+                            finish();
+                        } else {
+                            Toast.makeText(this, "Error in updating recipe", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         } else {
+            // Baru: push ke PendingRecipes
             String id = reference.push().getKey();
             recipe.setId(id);
             if (id != null) {
-                reference.child(id).setValue(recipe).addOnCompleteListener(task -> {
-                    dialog.dismiss();
-                    if (task.isSuccessful()) {
-                        Toast.makeText(AddRecipeActivity.this, "Recipe Added Successfully", Toast.LENGTH_SHORT).show();
-                        finish();
-                    } else {
-                        Toast.makeText(AddRecipeActivity.this, "Error in adding recipe", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                reference.child(id)
+                        .setValue(recipe)
+                        .addOnCompleteListener(task -> {
+                            dialog.dismiss();
+                            if (task.isSuccessful()) {
+                                Toast.makeText(this, "Recipe Sent for Approval", Toast.LENGTH_SHORT).show();
+                                finish();
+                            } else {
+                                Toast.makeText(this, "Error in submitting recipe", Toast.LENGTH_SHORT).show();
+                            }
+                        });
             }
         }
     }
+
 }

@@ -16,6 +16,7 @@ public class Recipe implements Serializable {
     private String calories;
     private String time;
     private String authorId;
+    private String status; // <--- status resep: pending, approved, rejected
 
     public Recipe() {}
 
@@ -87,6 +88,13 @@ public class Recipe implements Serializable {
 
     public String getAuthorId() {
         return authorId;
+    }
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public void setAuthorId(String authorId) {
